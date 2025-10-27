@@ -30,6 +30,13 @@ class Pessoa(ABC):
         else:
             print("[ERRO] O CPF não pode ser vazio.")
     
+    def to_dict(self) -> dict:
+        return {
+            "@type": self.__class__.__name__,
+            "nome": self._nome,
+            "cpf": self._cpf
+        }
+    
 class Funcionario(Pessoa):
     _contador_matricula = 0
     def __init__(self, nome: str, cpf: str):
@@ -45,6 +52,23 @@ class Funcionario(Pessoa):
     def matricula(self) -> str:
         return self.__matricula
     
+    def to_dict(self) -> dict:
+        dados_base = super().to_dict()
+        dados_base.update({
+            "matricula": self.__matricula
+        })
+        return dados_base
+
+    @classmethod
+    def from_dict(cls, dados: dict) -> "Funcionario":
+        novo_func = cls(dados['nome'], dados['cpf'])
+        novo_func.__matricula = dados['matricula']
+        return novo_func
+
+    @classmethod
+    def set_contador_matricula(cls, valor_max: int):
+        cls._contador_matricula = valor_max
+    
 class Cliente(Pessoa):
     _contador_id = 0
     def __init__(self, nome: str, cpf: str):
@@ -59,3 +83,20 @@ class Cliente(Pessoa):
     @property
     def id_cliente(self) -> int:
         return self.__id_cliente
+    
+    def to_dict(self) -> dict:
+        dados_base = super().to_dict()
+        dados_base.update({
+            "id_cliente": self.__id_cliente
+        })
+        return dados_base
+    
+    @classmethod
+    def from_dict(cls, dados: dict) -> "Cliente":
+        novo_cli = cls(dados['nome'], dados['cpf'])
+        novo_cli.__id_cliente = dados['id_cliente']
+        return novo_cli
+
+    @classmethod
+    def set_contador_id(cls, valor_max: int):
+        cls._contador_id = valor_max

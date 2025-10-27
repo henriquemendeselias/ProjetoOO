@@ -4,6 +4,7 @@ from farmacia.servicos.estoque import Estoque
 from farmacia.servicos.venda import HistoricoVendas, ItemVenda, Orcamento, Venda
 from datetime import date
 import os
+from farmacia.servicos.persistencia import carregar_pessoas, salvar_pessoas
 
 def exibir_menu(titulo: str, opcoes: list) -> None:
     largura = 50
@@ -40,9 +41,14 @@ def menu_caixa(estoque: Estoque, historico: HistoricoVendas, funcionario_logado:
 
             if escolha == 1:
                 print("\n--- Iniciando Nova Venda ---")
+                if not lista_de_clientes:
+                    print("[ERRO] Nenhum cliente cadastrado. Cadastre um cliente no 'Módulo Balcão' primeiro.")
+                    input("Pressione Enter...")
+                    continue
+
                 for cliente in lista_de_clientes:
                     print(f"ID: {cliente.id_cliente} | Nome: {cliente.nome}")
-                
+
                 try:
                     id_cliente = int(input("\nDigite o ID do cliente para a venda: "))
                     cliente_selecionado = None
@@ -167,14 +173,18 @@ def menu_balcao(lista_de_orcamentos: list, lista_de_clientes: list, lista_de_fun
 
         if escolha == 1:
             submenu_clientes(lista_de_clientes, historico)
+            salvar_pessoas(lista_de_clientes, lista_de_funcionarios)
         elif escolha == 2:
             submenu_funcionarios(lista_de_funcionarios, historico)
+            salvar_pessoas(lista_de_clientes, lista_de_funcionarios)
         elif escolha == 3:
             submenu_produtos(estoque)
+            # salvar_estoque aqui
         elif escolha == 4:
             submenu_orcamentos(lista_de_orcamentos, lista_de_clientes, estoque, funcionario, vendas_pausadas, historico)
         elif escolha == 5: 
             submenu_estoque(estoque)
+            # salvar_estoque aqui
         elif escolha == 6:
             submenu_historicos(historico, lista_de_clientes, lista_de_funcionarios)
         elif escolha == 0:
@@ -1040,10 +1050,24 @@ def submenu_venda_ativa(venda_em_andamento: Venda, estoque: Estoque, historico: 
             print("ERRO: Opção inválida."); input("Pressione Enter...")
 
 def main():
+    print("Carregando dados do sistema...")
+    lista_de_clientes, lista_de_funcionarios = carregar_pessoas()
+    print(f"Carregados {len(lista_de_clientes)} clientes e {len(lista_de_funcionarios)} funcionários.")
     estoque = Estoque()
     historico = HistoricoVendas()
-    func_teste = Funcionario("Funcionario Teste", "000.000.000-00")
-    cliente_teste = Cliente("Cliente Teste", "111.111.111-11")
+    if not lista_de_funcionarios:
+        print("Nenhum funcionário encontrado. Criando funcionário de teste...")
+        func_teste = Funcionario("Funcionario Teste", "000.000.000-00")
+        lista_de_funcionarios.append(func_teste)
+    else:
+        func_teste = lista_de_funcionarios[0] 
+        print(f"Logado como: {func_teste.nome}")
+
+    if not lista_de_clientes:
+        print("Nenhum cliente encontrado. Criando cliente de teste...")
+        cliente_teste = Cliente("Cliente Teste", "111.111.111-11")
+        lista_de_clientes.append(cliente_teste)
+
     med_teste = Medicamento("MED_TESTE", "med_teste", 4.99, False)
     estoque.adicionar_lote(med_teste, "diplote001", 100, date(2027, 5, 16))
     lista_de_clientes = [cliente_teste]
@@ -1070,6 +1094,9 @@ def main():
             menu_balcao(lista_de_orcamentos, lista_de_clientes, lista_de_funcionarios, estoque, historico, func_teste, vendas_pausadas)
 
         elif escolha == 3:
+            print("Salvando todos os dados...")
+            salvar_pessoas(lista_de_clientes, lista_de_funcionarios)
+            
             print("Saindo do sistema.")
             break
         else:
