@@ -1087,7 +1087,6 @@ def main():
         lista_de_funcionarios.append(funcionario_logado)
     else:
         funcionario_logado = lista_de_funcionarios[0]
-        print(f"Usando funcionário: {funcionario_logado.nome}")
 
     if not lista_de_clientes:
         print("Nenhum cliente encontrado. Criando cliente de teste...")
@@ -1100,7 +1099,7 @@ def main():
         estoque.adicionar_lote(med_teste, "diplote001", 100, date(2027, 5, 16))
 
     while True:
-        titulo_menu = f"MENU PRINCIPAL (Funcionario: {funcionario_logado.nome})"
+        titulo_menu = f"MENU PRINCIPAL)"
         opcoes_menu = ["Módulo Caixa", "Módulo Balcão", "Sair do Sistema"]
         exibir_menu(titulo_menu, opcoes_menu)
 
