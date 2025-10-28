@@ -1,0 +1,8 @@
+[
+    {
+        "@type": "Funcionario",
+        "nome": "Daniel",
+        "cpf": "44444444444",
+        "matricula": "F001"
+    }
+]

@@ -1,6 +1,7 @@
 from farmacia.entidades.produto import Produto
 from farmacia.entidades.pessoa import Funcionario, Cliente
 from datetime import datetime
+from typing import List, Dict
 
 class ItemVenda:
     def __init__(self, produto: Produto, quantidade: int):
@@ -29,6 +30,28 @@ class ItemVenda:
     def __str__(self) -> str:
         subtotal = self.calcular_subtotal()
         return f"{self.__produto.nome} com {self.__quantidade} unidades, Preço Un.: R${self.__preco_momento:.2f} | Subtotal: R${subtotal:.2f}"
+    
+    def to_dict(self) -> Dict:
+        return {
+            "codigo_produto_ref": self.__produto.codigo,
+            "quantidade": self.__quantidade,
+            "preco_momento": self.__preco_momento
+        }
+    
+    @classmethod
+    def from_dict(cls, dados: Dict, todos_os_produtos: List[Produto]) -> "ItemVenda":
+        codigo_busca = dados['codigo_produto_ref']
+
+        produto_encontrado = next((p for p in todos_os_produtos if p.codigo == codigo_busca), None)
+        
+        if not produto_encontrado:
+            raise ValueError(f"Produto com código {codigo_busca} não encontrado ao carregar histórico.")
+
+        novo_item = cls(produto_encontrado, dados['quantidade'])
+        
+        novo_item.__preco_momento = dados['preco_momento']
+        
+        return novo_item
     
 class Venda:
     _contador_id = 0
@@ -195,6 +218,50 @@ class Venda:
 
         return cabecalho + itens_str + rodape
     
+    def to_dict(self) -> Dict:
+        return {
+            "id_venda": self.__id_venda,
+            "id_cliente_ref": self.__cliente.id_cliente,
+            "matricula_func_ref": self.__funcionario.matricula,
+            "data_hora": self.__data_hora.isoformat(),
+            "status": self.__status,
+            "valor_total": self.__valor_total,
+            "itens": [item.to_dict() for item in self.__itens]
+        }
+
+    @classmethod
+    def from_dict(cls, dados: Dict, 
+                  todos_clientes: List[Cliente], 
+                  todos_funcionarios: List[Funcionario], 
+                  todos_os_produtos: List[Produto]) -> "Venda":
+        
+        id_cli = dados['id_cliente_ref']
+        cliente_encontrado = next((c for c in todos_clientes if c.id_cliente == id_cli), None)
+
+        mat_func = dados['matricula_func_ref']
+        func_encontrado = next((f for f in todos_funcionarios if f.matricula == mat_func), None)
+
+        if not cliente_encontrado or not func_encontrado:
+            raise ValueError(f"Cliente (ID {id_cli}) ou Funcionário (Mat {mat_func}) não encontrado ao carregar Venda {dados['id_venda']}.")
+
+        nova_venda = cls(func_encontrado, cliente_encontrado)
+
+        nova_venda.__id_venda = dados['id_venda']
+        nova_venda.__data_hora = datetime.fromisoformat(dados['data_hora'])
+        nova_venda.__status = dados['status']
+        nova_venda.__valor_total = dados['valor_total']
+        
+        nova_venda.__itens = [
+            ItemVenda.from_dict(item_dados, todos_os_produtos) 
+            for item_dados in dados['itens']
+        ]
+        
+        return nova_venda
+    
+    @classmethod
+    def set_contador_id(cls, valor_max: int):
+        cls._contador_id = valor_max
+    
 
 class Orcamento:
     _contador_id = 0
@@ -284,6 +351,49 @@ class Orcamento:
             f"{'='*40}"
         )
         return cabecalho + itens_str + rodape  
+    
+    def to_dict(self) -> Dict:
+        return {
+            "id_orcamento": self.__id_orcamento,
+            "id_cliente_ref": self.__cliente.id_cliente,
+            "matricula_func_ref": self.__funcionario.matricula,
+            "data_hora": self.__data_hora.isoformat(),
+            "valor_total": self.__valor_total,
+            "itens": [item.to_dict() for item in self.__itens]
+        }
+
+    @classmethod
+    def from_dict(cls, dados: Dict, 
+                  todos_clientes: List[Cliente], 
+                  todos_funcionarios: List[Funcionario], 
+                  todos_os_produtos: List[Produto]) -> "Orcamento":
+
+        id_cli = dados['id_cliente_ref']
+        cliente_encontrado = next((c for c in todos_clientes if c.id_cliente == id_cli), None)
+
+        mat_func = dados['matricula_func_ref']
+        func_encontrado = next((f for f in todos_funcionarios if f.matricula == mat_func), None)
+
+        if not cliente_encontrado or not func_encontrado:
+            raise ValueError(f"Cliente (ID {id_cli}) ou Funcionário (Mat {mat_func}) não encontrado ao carregar Orçamento {dados['id_orcamento']}.")
+
+        novo_orcamento = cls(func_encontrado, cliente_encontrado)
+
+        novo_orcamento.__id_orcamento = dados['id_orcamento']
+        novo_orcamento.__data_hora = datetime.fromisoformat(dados['data_hora']) 
+        novo_orcamento.__valor_total = dados['valor_total']
+        
+        
+        novo_orcamento.__itens = [
+            ItemVenda.from_dict(item_dados, todos_os_produtos) 
+            for item_dados in dados['itens']
+        ]
+        
+        return novo_orcamento
+    
+    @classmethod
+    def set_contador_id(cls, valor_max: int):
+        cls._contador_id = valor_max
 
 class HistoricoVendas:
     def __init__(self):
@@ -326,3 +436,35 @@ class HistoricoVendas:
 
     def __str__(self):
         return f"histórico contendo {len(self.__vendas_finalizadas)} vendas registradas."
+    
+    def to_dict(self) -> List[Dict]:
+        return [venda.to_dict() for venda in self.__vendas_finalizadas]
+    
+    def load_from_data(self, 
+                       dados_historico: List[Dict], 
+                       todos_clientes: List[Cliente], 
+                       todos_funcionarios: List[Funcionario], 
+                       todos_os_produtos: List[Produto]):
+        
+        vendas_carregadas = []
+        max_id_venda = 0
+        
+        for dados_venda in dados_historico:
+            try:
+                venda = Venda.from_dict(
+                    dados_venda, 
+                    todos_clientes, 
+                    todos_funcionarios, 
+                    todos_os_produtos
+                )
+                vendas_carregadas.append(venda)
+            
+                if venda.id_venda > max_id_venda:
+                    max_id_venda = venda.id_venda
+                    
+            except ValueError as e:
+                print(f"[ERRO] Falha ao carregar Venda: {e}")
+        self.__vendas_finalizadas = vendas_carregadas
+    
+        Venda.set_contador_id(max_id_venda)
+        print(f"Histórico carregado com {len(self.__vendas_finalizadas)} vendas.")

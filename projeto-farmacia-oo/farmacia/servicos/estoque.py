@@ -1,6 +1,6 @@
-from farmacia.entidades.produto import Produto, Lote
+from farmacia.entidades.produto import Produto, Lote, Medicamento, Perfumaria
 from datetime import date, timedelta
-from typing import List, Dict
+from typing import List, Dict, Type
 
 class Estoque:
     def __init__(self):
@@ -9,6 +9,51 @@ class Estoque:
     @property
     def produtos(self) -> List[Produto]:
         return [dados["produto"] for dados in self.__inventario.values()]
+
+    def to_dict(self) -> Dict[str, Dict]:
+        inventario_serializado = {}
+        for chave_produto, dados in self.__inventario.items():
+            produto_dict = dados["produto"].to_dict()
+            lotes_list_dict = [lote.to_dict() for lote in dados["lotes"]]
+            inventario_serializado[chave_produto] = {
+                "produto": produto_dict,
+                "lotes": lotes_list_dict
+            }
+        return inventario_serializado
+    
+    def load_from_data(self, dados_inventario: Dict[str, Dict]):
+        CLASSES_PRODUTO: Dict[str, Type[Produto]] = {
+            "Medicamento": Medicamento,
+            "Perfumaria": Perfumaria
+        }
+
+        novo_inventario_carregado = {}
+        
+        for chave_produto, dados in dados_inventario.items():
+            
+            dados_produto = dados["produto"]
+            tipo_produto_str = dados_produto.get("@type")
+            
+            classe_do_produto = CLASSES_PRODUTO.get(tipo_produto_str)
+            
+            if not classe_do_produto:
+                print(f"[ERRO] Tipo de produto desconhecido '{tipo_produto_str}' ao carregar. Pulando item.")
+                continue
+
+            produto_obj = classe_do_produto.from_dict(dados_produto)
+            
+            lotes_obj_list = []
+            for dados_lote in dados["lotes"]:
+                lote_obj = Lote.from_dict(dados_lote)
+                lotes_obj_list.append(lote_obj)
+                
+            novo_inventario_carregado[chave_produto] = {
+                "produto": produto_obj,
+                "lotes": lotes_obj_list
+            }
+
+        self.__inventario = novo_inventario_carregado
+        print(f"Estoque carregado com {len(self.__inventario)} tipos de produtos.")
 
     def adicionar_lote(self, produto: Produto, codigo_lote: str, quantidade: int, data_validade: date) -> None:
         novo_lote = Lote(codigo_lote, quantidade, data_validade)
@@ -68,13 +113,15 @@ class Estoque:
         
         lista_de_lotes = self.__inventario[chave_produto]["lotes"]
 
+        if not lista_de_lotes:
+            print(f"Não há lotes para estornar o produto {produto.nome}. O estorno falhou.")
+            return
+
         lista_de_lotes.sort(key=lambda lote: lote.data_validade, reverse=True)
 
         lote_alvo = lista_de_lotes[0]
         lote_alvo.quantidade += quantidade
         print(f"Estornado {quantidade} un. para o lote {lote_alvo.codigo_lote} do produto '{produto.nome}'.")
-
-    
 
     def registrar_perda(self, lote_a_verificar: Lote, quantidade: int, motivo: str) -> None:
         chave_do_produto = None

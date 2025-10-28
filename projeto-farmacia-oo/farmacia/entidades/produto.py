@@ -37,6 +37,14 @@ class Produto(ABC):
         else:
             print("O preço deve ser um valor positivo.")
 
+    def to_dict(self) -> dict:
+        return {
+            "@type": self.__class__.__name__,
+            "codigo": self._codigo,
+            "nome": self._nome,
+            "preco": self._preco
+        }
+
 class Medicamento(Produto):
     def __init__(self, codigo: str, nome: str, preco: float, receita_obrigatoria: bool):
         super().__init__(codigo, nome, preco)
@@ -62,6 +70,21 @@ class Medicamento(Produto):
         else:
             print("O nome não pode ser vazio.")
 
+    def to_dict(self) -> dict:
+        dados_base = super().to_dict()
+        dados_base.update({
+            "receita_obrigatoria": self.__receita_obrigatoria
+        })
+        return dados_base
+    
+    @classmethod
+    def from_dict(cls, dados: dict) -> "Medicamento":
+        return cls(
+            codigo=dados['codigo'],
+            nome=dados['nome'],
+            preco=dados['preco'],
+            receita_obrigatoria=dados['receita_obrigatoria']
+        )
     
 class Perfumaria(Produto):
     def __init__(self, codigo: str, nome: str, preco: float, volume: str):
@@ -76,6 +99,23 @@ class Perfumaria(Produto):
     @property
     def volume(self) -> str:
         return self.__volume
+    
+    def to_dict(self) -> dict:
+        dados_base = super().to_dict()
+        dados_base.update({
+            "volume": self.__volume
+        })
+        return dados_base
+    
+    @classmethod
+    def from_dict(cls, dados: dict) -> "Perfumaria":
+        """ Cria uma instância de Perfumaria a partir de um dicionário. """
+        return cls(
+            codigo=dados['codigo'],
+            nome=dados['nome'],
+            preco=dados['preco'],
+            volume=dados['volume']
+        )
 
 class Lote: 
     def __init__(self, codigo_lote: str, quantidade: int, data_validade: date):
@@ -105,3 +145,18 @@ class Lote:
             self.__quantidade = nova_quantidade
         else:
             self.__quantidade = 0
+
+    def to_dict(self) -> dict:
+        return {
+            "codigo_lote": self.__codigo_lote,
+            "quantidade": self.__quantidade,
+            "data_validade": self.__data_validade.isoformat() 
+        }
+    
+    @classmethod
+    def from_dict(cls, dados: dict) -> "Lote":
+        return cls(
+            codigo_lote=dados['codigo_lote'],
+            quantidade=dados['quantidade'],
+            data_validade=date.fromisoformat(dados['data_validade'])
+        )

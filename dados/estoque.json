@@ -1,0 +1,18 @@
+{
+    "MED_TESTE": {
+        "produto": {
+            "@type": "Medicamento",
+            "codigo": "MED_TESTE",
+            "nome": "med_teste",
+            "preco": 4.99,
+            "receita_obrigatoria": false
+        },
+        "lotes": [
+            {
+                "codigo_lote": "diplote001",
+                "quantidade": 95,
+                "data_validade": "2027-05-16"
+            }
+        ]
+    }
+}
