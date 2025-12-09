@@ -2,7 +2,6 @@ import tkinter as tk
 from tkinter import messagebox, simpledialog, ttk
 from datetime import date, datetime
 
-# --- Importações dos seus módulos ---
 from farmacia.entidades.pessoa import Cliente, Funcionario
 from farmacia.entidades.produto import Medicamento, Perfumaria
 from farmacia.servicos.estoque import Estoque
@@ -21,7 +20,6 @@ class FarmaciaApp:
         self.root.title("Sistema de Gestão de Farmácia - POO (Final)")
         self.root.geometry("1100x750") 
         
-        # --- Variáveis de Memória ---
         self.lista_de_clientes = []
         self.lista_de_funcionarios = []
         self.estoque = None
@@ -48,7 +46,6 @@ class FarmaciaApp:
                 self.lista_de_clientes, self.lista_de_funcionarios, self.estoque.produtos
             )
             
-            # Dados de teste (Safety check)
             if not self.lista_de_funcionarios:
                 self.lista_de_funcionarios.append(Funcionario("Funcionario Admin", "000.000.000-00"))
             self.funcionario_logado = self.lista_de_funcionarios[0]
@@ -304,17 +301,14 @@ class FarmaciaApp:
 
         btn_frame = tk.Frame(self.root); btn_frame.pack(pady=10)
 
-        # Coluna 1
         tk.Label(btn_frame, text="--- Pessoas ---", font=("Arial", 10, "bold")).grid(row=0, column=0, padx=10, pady=5)
         tk.Button(btn_frame, text="Gerenciar Clientes", width=25, command=lambda: self._abrir_crud_pessoas("Clientes", self.lista_de_clientes, Cliente)).grid(row=1, column=0, padx=10, pady=5)
         tk.Button(btn_frame, text="Gerenciar Funcionários", width=25, command=lambda: self._abrir_crud_pessoas("Funcionários", self.lista_de_funcionarios, Funcionario)).grid(row=2, column=0, padx=10, pady=5)
 
-        # Coluna 2
         tk.Label(btn_frame, text="--- Produtos/Estoque ---", font=("Arial", 10, "bold")).grid(row=0, column=1, padx=10, pady=5)
         tk.Button(btn_frame, text="Gerenciar Produtos", width=25, command=self._abrir_gerenciar_produtos).grid(row=1, column=1, padx=10, pady=5)
         tk.Button(btn_frame, text="Gerenciar Estoque (Lotes)", width=25, command=self._abrir_gerenciar_estoque).grid(row=2, column=1, padx=10, pady=5)
 
-        # Coluna 3 (AGORA FUNCIONAL)
         tk.Label(btn_frame, text="--- Vendas ---", font=("Arial", 10, "bold")).grid(row=0, column=2, padx=10, pady=5)
         tk.Button(btn_frame, text="Gerenciar Orçamentos", width=25, command=self._abrir_gerenciar_orcamentos).grid(row=1, column=2, padx=10, pady=5)
         tk.Button(btn_frame, text="Histórico de Vendas", width=25, command=self._abrir_historico_vendas).grid(row=2, column=2, padx=10, pady=5)
@@ -322,7 +316,6 @@ class FarmaciaApp:
         tk.Button(self.root, text="Voltar ao Menu Principal", bg="#e6e6e6", width=20,
                   command=self.criar_menu_principal).pack(pady=30)
 
-    # --- CRUD GENÉRICO PESSOAS ---
     def _abrir_crud_pessoas(self, titulo_janela, lista_dados, ClasseEntidade):
         self.limpar_janela()
         tk.Label(self.root, text=f"Gerenciar {titulo_janela}", font=("Arial", 16, "bold")).pack(pady=10)
@@ -360,7 +353,6 @@ class FarmaciaApp:
         tk.Button(frame_btn, text="Deletar", bg="#ffcccc", command=deletar).pack(side=tk.LEFT, padx=5)
         tk.Button(frame_btn, text="Voltar", command=self.abrir_modulo_balcao).pack(side=tk.RIGHT)
 
-    # --- PRODUTOS ---
     def _abrir_gerenciar_produtos(self):
         self.limpar_janela()
         tk.Label(self.root, text="Gerenciar Produtos", font=("Arial", 16, "bold")).pack(pady=10)
@@ -406,7 +398,6 @@ class FarmaciaApp:
         tk.Button(frame_btn, text="Deletar", bg="#ffcccc", command=deletar).pack(side=tk.LEFT, padx=5)
         tk.Button(frame_btn, text="Voltar", command=self.abrir_modulo_balcao).pack(side=tk.RIGHT)
 
-    # --- ESTOQUE ---
     def _abrir_gerenciar_estoque(self):
         self.limpar_janela()
         tk.Label(self.root, text="Gerenciar Estoque", font=("Arial", 16)).pack(pady=10)
@@ -438,13 +429,12 @@ class FarmaciaApp:
         tk.Button(self.root, text="Voltar", command=self.abrir_modulo_balcao).pack(pady=10)
 
     # =========================================================================
-    # --- NOVO: GERENCIAR ORÇAMENTOS (ETAPA 5) ---
+    # --- NOVO: GERENCIAR ORÇAMENTOS ---
     # =========================================================================
     def _abrir_gerenciar_orcamentos(self):
         self.limpar_janela()
         tk.Label(self.root, text="Gerenciar Orçamentos", font=("Arial", 16, "bold")).pack(pady=10)
 
-        # Lista de orçamentos
         cols = ("ID", "Cliente", "Data", "Total")
         tree = ttk.Treeview(self.root, columns=cols, show='headings')
         for c in cols: tree.heading(c, text=c)
@@ -459,11 +449,8 @@ class FarmaciaApp:
         frame_btns = tk.Frame(self.root, pady=10); frame_btns.pack(fill='x', padx=20)
 
         def novo_orcamento():
-            # Simplificação: Abre uma "venda" temporária e salva como orçamento
-            # Por questão de tempo, vou reusar a lógica de venda mas mudando o "Salvar"
             if not self.lista_de_clientes: return messagebox.showerror("Erro", "Sem clientes.")
             
-            # 1. Escolher cliente
             cli_nome = simpledialog.askstring("Novo Orçamento", "Parte do nome do cliente:")
             if not cli_nome: return
             cliente = next((c for c in self.lista_de_clientes if cli_nome.lower() in c.nome.lower()), None)
@@ -471,7 +458,6 @@ class FarmaciaApp:
 
             orc = Orcamento(self.funcionario_logado, cliente)
             
-            # Janela de edição de orçamento (simples)
             win_orc = tk.Toplevel(self.root); win_orc.geometry("500x500"); win_orc.title("Editando Orçamento")
             
             lbl_info = tk.Label(win_orc, text=f"Orçamento para {cliente.nome}")
@@ -505,9 +491,7 @@ class FarmaciaApp:
             idx = tree.index(sel[0])
             orc = self.lista_de_orcamentos[idx]
             
-            # Converte
             nova_venda = orc.converter_em_venda()
-            # Remove o orçamento da lista (opcional, mas comum)
             self.lista_de_orcamentos.pop(idx)
             
             messagebox.showinfo("Sucesso", "Orçamento convertido! Redirecionando para o Caixa...")
@@ -518,7 +502,7 @@ class FarmaciaApp:
         tk.Button(frame_btns, text="Voltar", command=self.abrir_modulo_balcao).pack(side=tk.RIGHT)
 
     # =========================================================================
-    # --- NOVO: HISTÓRICO DE VENDAS (ETAPA 5) ---
+    # --- HISTÓRICO DE VENDAS ---
     # =========================================================================
     def _abrir_historico_vendas(self):
         self.limpar_janela()
