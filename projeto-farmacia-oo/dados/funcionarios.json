@@ -1,0 +1,14 @@
+[
+    {
+        "@type": "Funcionario",
+        "nome": "funco",
+        "cpf": "154555155458",
+        "matricula": "F002"
+    },
+    {
+        "@type": "Funcionario",
+        "nome": "fhdd",
+        "cpf": "5d4dd",
+        "matricula": "F003"
+    }
+]

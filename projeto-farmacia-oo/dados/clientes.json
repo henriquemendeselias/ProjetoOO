@@ -1,0 +1,8 @@
+[
+    {
+        "@type": "Cliente",
+        "nome": "henrique",
+        "cpf": "44454545455",
+        "id_cliente": 2
+    }
+]

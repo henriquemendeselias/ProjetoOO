@@ -1,0 +1,17 @@
+[
+    {
+        "id_venda": 1,
+        "id_cliente_ref": 2,
+        "matricula_func_ref": "F002",
+        "data_hora": "2025-12-09T16:54:08.086404",
+        "status": "CANCELADA",
+        "valor_total": 44.910000000000004,
+        "itens": [
+            {
+                "codigo_produto_ref": "NEOSA001",
+                "quantidade": 10,
+                "preco_momento": 4.99
+            }
+        ]
+    }
+]

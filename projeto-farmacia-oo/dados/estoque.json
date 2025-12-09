@@ -1,0 +1,39 @@
+{
+    "MED_TESTE": {
+        "produto": {
+            "@type": "Medicamento",
+            "codigo": "MED_TESTE",
+            "nome": "med_teste",
+            "preco": 4.99,
+            "receita_obrigatoria": false
+        },
+        "lotes": [
+            {
+                "codigo_lote": "diplote001",
+                "quantidade": 100,
+                "data_validade": "2027-05-16"
+            }
+        ]
+    },
+    "NEOSA001": {
+        "produto": {
+            "@type": "Medicamento",
+            "codigo": "NEOSA001",
+            "nome": "neosaldina",
+            "preco": 4.99,
+            "receita_obrigatoria": false
+        },
+        "lotes": [
+            {
+                "codigo_lote": "neosalote002",
+                "quantidade": 110,
+                "data_validade": "2036-12-15"
+            },
+            {
+                "codigo_lote": "neosalote001",
+                "quantidade": 90,
+                "data_validade": "2002-01-15"
+            }
+        ]
+    }
+}
